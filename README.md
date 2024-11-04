@@ -1,6 +1,6 @@
 # ESLM: Improving entity summarization by leveraging language models
 
-Meine Version
+Meine Version: Simon Schmitt
 
 The ESLM model is designed to efficiently perform entity summarization tasks. At its core, ESLM utilizes a language model augmented with an attention mechanism, allowing for context-aware processing and prediction. This mechanism ensures that the model focuses on the most relevant aspects of data sequences. Additionally, ESLM employs a Multi-Layer Perceptron (MLP) for accurate triple scoring, which aids in selecting the most relevant triples for each entity. To augment the model’s effectiveness, we also enriched it with knowledge graph embeddings (KGE), leveraging their rich semantic information.
 
