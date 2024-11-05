@@ -29,11 +29,14 @@ from classes.models import ESLMKGE, ESLM
 from evaluation import evaluation
 
 def main(args):
+    # Load arguments
     config = Config(args)
     do_train = config.do_train
     do_test = config.do_test
     device = config.device
     model_name = config.model_name
+
+    # Determine base model
     if model_name == "bert":
         model_base = "bert-base-uncased"
     elif model_name == "ernie":
@@ -43,12 +46,16 @@ def main(args):
     else:
         print("please choose the correct model name: bert/ernie/t5")
         sys.exit()
+
+    # With KGE or without
     if config.enrichment:
         main_model_dir = f"models-eslm-kge-{model_name}"
     else:
         main_model_dir = f"models-eslm-{model_name}"
     criterion = nn.BCELoss()#BCELoss()  # Assuming a regression task
     utils = Utils()
+
+    # Select Tokenizer
     if model_name=="t5":
         tokenizer = T5Tokenizer.from_pretrained(f'{model_base}', model_max_length=config.max_length, legacy=False)
     else:
@@ -319,6 +326,7 @@ def main(args):
                     else:
                         model = ESLM(model_name, model_base)
                     models_path = os.path.join(f"{main_model_dir}", f"eslm_checkpoint-{ds_name}-{topk}-{fold}")
+                    print(models_path)
                     try:
                         checkpoint = torch.load(os.path.join(models_path, f"checkpoint_latest_{fold}.pt"))
                     except:
