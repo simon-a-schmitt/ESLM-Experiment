@@ -79,7 +79,11 @@ def main(args):
                 pred2ix_size = len(pred2ix)
                 entity2ix_size = len(entity2ix)
             for topk in config.topk:
+
+                # Initialize the dataset
                 dataset = ESBenchmark(ds_name, 6, topk, False)
+
+                # Load training and validation data
                 train_data, valid_data = dataset.get_training_dataset()
                 for fold in range(config.k_fold):
                     train_data_size = len(train_data[fold][0])
