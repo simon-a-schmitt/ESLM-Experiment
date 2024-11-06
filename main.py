@@ -68,6 +68,12 @@ def main(args):
             print(f"Dataset: {ds_name}")
             if config.enrichment:
                 entity2vec, pred2vec, entity2ix, pred2ix = load_dglke(ds_name)
+                
+                # entitity2vec: Numpy array of entity embeddings
+                # entitiy2ix: Mapping of entitites to indices
+                # pred2vec: Numpy array of predicate embeddings
+                # pred2ix: Mapping of predicates to indices
+
                 entity_dict = entity2vec
                 pred_dict = pred2vec
                 pred2ix_size = len(pred2ix)

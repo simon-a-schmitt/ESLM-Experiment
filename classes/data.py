@@ -18,7 +18,7 @@ def load_dglke(ds_name):
 
 def build_dictionary(input_dict):
     
-    f = open(input_dict, "r")
+    f = open(input_dict, "r", encoding="utf-8")
     content = f.readlines()
     idx2dict = dict()
     for items in content:
