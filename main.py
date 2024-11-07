@@ -88,6 +88,8 @@ def main(args):
                 for fold in range(config.k_fold):
                     train_data_size = len(train_data[fold][0])
                     train_data_samples = train_data[fold][0]
+                    print("Train Data Samples:")
+                    print(train_data_samples)
                     print(f"fold: {fold+1}, total entities: {train_data_size}", f"topk: top{topk}")
                     models_path = os.path.join(f"{main_model_dir}", f"eslm_checkpoint-{ds_name}-{topk}-{fold}")
                     models_dir = os.path.join(os.getcwd(), models_path)
@@ -126,14 +128,29 @@ def main(args):
                         #Training part
                         t_start = time.time()
                         train_loss = 0
+
+                        # num is aritifical index
+                        # eid is the entity id for the elements of the dictionary
                         for num, eid in enumerate(train_data_samples):
+
+                            # list of triples
                             triples = dataset.get_triples(eid)
+
+                            # list of triples (gold solution)
                             labels = dataset.prepare_labels(eid)
+
+                            # list of triples (literal version)
                             literals = dataset.get_literals(eid)
+
+                            # Preprocessing (add [SEP] and build one string per triple)
                             triples_formatted = format_triples(literals)
+
                             input_ids_list = []
                             attention_masks_list = []
+
+                            
                             for triple in triples_formatted:
+                                # Tokenizing and adding of [CLS] token
                                 src_tokenized = tokenizer.encode_plus(
                                     triple, 
                                     max_length=config.max_length,
@@ -144,9 +161,17 @@ def main(args):
                                     add_special_tokens=True
                                     #return_tensors='pt'
                                 )
+
+                                # Token IDs
                                 src_input_ids = src_tokenized['input_ids']
+
+                                # What are real tokens (that the model should attend to)
                                 src_attention_mask = src_tokenized['attention_mask']
+
+                                # Segments within the sequence (irrelevant in this case)
                                 src_segment_ids = src_tokenized['token_type_ids']
+
+                                # Two dimensional arrays with each row representing a triple as token sequence
                                 input_ids_list.append(src_input_ids)
                                 attention_masks_list.append(src_attention_mask)
 
@@ -186,6 +211,7 @@ def main(args):
                                 kg_embeds = torch.cat((s_tensor, p_tensor, o_tensor), 2).to(device)
                                 ### end apply kge
 
+                            ##############################
                             input_ids_tensor = torch.tensor(input_ids_list).to(device)
                             attention_masks_tensor = torch.tensor(attention_masks_list).to(device)
                             targets = utils.tensor_from_weight(len(triples), triples, labels).to(device)
