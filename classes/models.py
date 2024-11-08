@@ -121,24 +121,35 @@ class ESLMKGE(nn.Module):
                 a vectorized representation of a triple (e.g., subject, predicate, object) from 
                 a knowledge graph
         """
+
+        # Embedding of tokens by llm
+        # (num_triples, seq_len, hidden_dim)
         encoder_output = self.lm_encoder(input_ids=input_ids, attention_mask=attention_mask).last_hidden_state
 
         # Expand KG Embeddings
+        # Before: (num_triples, 1, 1200)
+        # After: (num_triples, seq_len, 1200)
         kg_embeddings_expanded = kg_embeddings.expand(-1, encoder_output.size(1), -1)
 
         # Combine with lm encoder output
         combined_embeddings = torch.cat([encoder_output, kg_embeddings_expanded], dim=-1)
         pooled_output = combined_embeddings.mean(dim=1)
+        # Result: (num_triples, 1200 + hidden_dim)
         
         # Apply attention mechanism
+        # (num_triples, 1)
         attn_weights = F.softmax(self.attention(pooled_output), dim=-1)
+        # Broadcasting for attn_weights
+        # Result: (num_triples, 1200 + hidden_dim)
         combined_output = attn_weights * pooled_output
         
         # Pass through MLP
+        # Result: (num_triples, 1)
         regression_output = self.mlp(combined_output)
         
         # Apply activation 
         # For outputs bounded between 0 and 1
+        # Result: (num_triples, 1)
         regression_output = F.softmax(regression_output, dim=0) # use dim=0 due to not implemented data batches
 
         return regression_output

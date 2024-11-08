@@ -123,6 +123,9 @@ def main(args):
                         num_training_steps=num_training_steps
                     )
                     for epoch in range(config.epochs):
+
+                        # Set model to training mode
+                        # e.g. dropout layers are enabled
                         model.train()
                         model.to(config.device)
                         #Training part
@@ -136,7 +139,7 @@ def main(args):
                             # list of triples
                             triples = dataset.get_triples(eid)
 
-                            # list of triples (gold solution)
+                            # dicitionary with the predicate-object pairs as keys and number of occurences as value
                             labels = dataset.prepare_labels(eid)
 
                             # list of triples (literal version)
@@ -208,42 +211,73 @@ def main(args):
                                 s_tensor = torch.tensor(np.array(s_embs),dtype=torch.float).unsqueeze(1)
                                 o_tensor = torch.tensor(np.array(o_embs),dtype=torch.float).unsqueeze(1)
                                 p_tensor = torch.tensor(np.array(p_embs),dtype=torch.float).unsqueeze(1)
+
+                                # torch.tensor with (num_triples, 1, 1200)
                                 kg_embeds = torch.cat((s_tensor, p_tensor, o_tensor), 2).to(device)
                                 ### end apply kge
 
                             ##############################
                             input_ids_tensor = torch.tensor(input_ids_list).to(device)
                             attention_masks_tensor = torch.tensor(attention_masks_list).to(device)
+                            
+                            # Creates weight values for all triples based on matchin with labels
+                            # Weights are based on the count values from labels (how often does predicate-object-pair occur in gold solutions)
+                            # Weights are then normalized
                             targets = utils.tensor_from_weight(len(triples), triples, labels).to(device)
+
                             if config.enrichment:
+
+                                # Call forward method
+                                # Result: (num_triples, 1)
                                 outputs = model(input_ids_tensor, attention_masks_tensor, kg_embeds)
                             else:
+                                # Call forward method
+                                # Result: (num_triples, 1)
                                 outputs = model(input_ids_tensor, attention_masks_tensor)
 
                             # Reshaping the logits
                             reshaped_logits = outputs
                             #print(reshaped_logits)
+
                             # Ensure your targets tensor is of shape [103, 1]
+                            # Add extra dimension
+                            # Result: (num_triples, 1)
                             reshaped_targets = targets.unsqueeze(-1)
+
                             # Now compute the loss
                             loss = criterion(reshaped_logits, reshaped_targets)
+
+                            # Empty gradients so they don't accumulate
                             optimizer.zero_grad()
+
+                            # Backward pass, comput gradients of loss with respect to each parameter
                             loss.backward()
 
                             # Gradient clipping (optional)
                             #torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
 
+                            # Update parameters
                             optimizer.step()
+
+                            # Upate learning rate
                             scheduler.step()
 
                             train_loss += loss.item()
+
+                        # After training for epoch is done
                         avg_train_loss = train_loss/train_data_size
                         training_time = format_time(time.time() - t_start)
+
                         # Evaluation part
                         t_start = time.time()
                         valid_data_size = len(valid_data[fold][0])
                         valid_data_samples = valid_data[fold][0]
+
+                        # Set model to evaluation mode
+                        # e.g. dropout layers are disabled
                         model.eval()
+
+                        # No gradient calculation
                         with torch.no_grad():
                             valid_loss = 0
                             valid_acc = 0
@@ -319,14 +353,30 @@ def main(args):
                                 # Now compute the loss
                                 loss = criterion(reshaped_logits, reshaped_targets)
                                 valid_loss += loss.item()
+
+                                # Change dimension from (num_triples, 1) to (1, num_triples)
                                 valid_output_tensor = reshaped_logits.view(1, -1).cpu()
+
+                                # get indices of top k predictions
+                                # Result: (1, topk)
                                 (_, output_top) = torch.topk(valid_output_tensor, topk)
+
+                                # Get triple dicitionary for current entity
+                                # Dictionary with triple as key and triple IDs as value 
                                 triples_dict = dataset.triples_dictionary(eid)
+
+                                # Get gold summaries
+                                # List of list where every inner list contains the triple IDs of the respective gold solution
                                 gold_list_top = dataset.get_gold_summaries(eid, triples_dict)
+
+                                # Custom method for calculating accuracy
                                 acc = utils.accuracy(output_top.squeeze(0).numpy().tolist(), gold_list_top)
                                 valid_acc += acc
+
+                            # After entire validation set is done
                             avg_valid_loss = valid_loss/valid_data_size
                             avg_valid_acc = valid_acc/valid_data_size
+
                             validation_time = format_time(time.time() - t_start)
                             torch.save({
                                 "epoch": epoch,
