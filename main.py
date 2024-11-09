@@ -411,6 +411,8 @@ def main(args):
                         model = ESLMKGE(model_name, model_base)
                     else:
                         model = ESLM(model_name, model_base)
+
+                    # Load model
                     models_path = os.path.join(f"{main_model_dir}", f"eslm_checkpoint-{ds_name}-{topk}-{fold}")
                     print(models_path)
                     try:
@@ -418,7 +420,10 @@ def main(args):
                     except:
                         print("Error while loading the model")
                         sys.exit()
+
                     model.load_state_dict(checkpoint["model"])
+
+                    # Set model to evaluation mode
                     model.eval()
                     model.to(device)
                     with torch.no_grad():
@@ -478,10 +483,12 @@ def main(args):
                                 p_tensor = torch.tensor(np.array(p_embs),dtype=torch.float).unsqueeze(1)
                                 kg_embeds = torch.cat((s_tensor, p_tensor, o_tensor), 2).to(device)
                             ### end apply kge
+
                             input_ids_tensor = torch.tensor(input_ids_list).to(device)
                             attention_masks_tensor = torch.tensor(attention_masks_list).to(device)
                             batch_size = input_ids_tensor.size(0)
                             targets = utils.tensor_from_weight(len(triples), triples, labels).to(device)
+
                             if config.enrichment:
                                 outputs = model(input_ids_tensor, attention_masks_tensor, kg_embeds)
                             else:
@@ -492,8 +499,12 @@ def main(args):
                             reshaped_targets = targets.unsqueeze(-1)
                             reshaped_logits = reshaped_logits.view(1, -1).cpu()
                             reshaped_targets = reshaped_targets.view(1, -1).cpu()
+
+                            # get indices of top k predictions
                             _, output_top = torch.topk(reshaped_logits, topk)
+                            # get indices in the order of rank
                             _, output_rank = torch.topk(reshaped_logits, len(test_data_samples[eid]))
+                            
                             directory = f"outputs-{model_name}/{dataset.get_ds_name}"
                             if not os.path.exists(directory):
                                 os.makedirs(directory)
