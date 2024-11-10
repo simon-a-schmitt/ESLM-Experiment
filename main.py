@@ -100,6 +100,8 @@ def main(args):
                     else:
                         model = ESLM(model_name, model_base)
                     param_optimizer = list(model.named_parameters())
+
+                    # No weight decay for certain parameters
                     no_decay = ["bias", "LayerNorm.bias", "LayerNorm.weight"]
                     optimizer_parameters = [
                         {
@@ -177,6 +179,16 @@ def main(args):
                                 # Two dimensional arrays with each row representing a triple as token sequence
                                 input_ids_list.append(src_input_ids)
                                 attention_masks_list.append(src_attention_mask)
+
+                                """
+                                # Print tokens and their IDs
+                                print("Tokens and their IDs:")
+                                for token_id in src_input_ids:
+                                    if token_id != tokenizer.pad_token_id:  # Skip padding tokens
+                                        token = tokenizer.decode([token_id])  # Decoding the token ID to get the actual token
+                                        print(f"Token: {token}, ID: {token_id}")
+
+                                """
 
                             ### apply kge
                             if config.enrichment:
