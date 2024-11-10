@@ -1,6 +1,6 @@
 scipy
 numpy==1.22
-gensim==3.8.3
+gensim==4.1.2
 nltk==3.6.6
 torch
 psutil==5.8.0
