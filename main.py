@@ -88,8 +88,8 @@ def main(args):
                 for fold in range(config.k_fold):
                     train_data_size = len(train_data[fold][0])
                     train_data_samples = train_data[fold][0]
-                    print("Train Data Samples:")
-                    print(train_data_samples)
+                    #print("Train Data Samples:")
+                    #print(train_data_samples)
                     print(f"fold: {fold+1}, total entities: {train_data_size}", f"topk: top{topk}")
                     models_path = os.path.join(f"{main_model_dir}", f"eslm_checkpoint-{ds_name}-{topk}-{fold}")
                     models_dir = os.path.join(os.getcwd(), models_path)
