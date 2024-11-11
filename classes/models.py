@@ -130,18 +130,25 @@ class ESLMKGE(nn.Module):
         # Before: (num_triples, 1, 1200)
         # After: (num_triples, seq_len, 1200)
         kg_embeddings_expanded = kg_embeddings.expand(-1, encoder_output.size(1), -1)
+        #print("kg_embeddings_expanded shape:", kg_embeddings_expanded.shape)   
 
         # Combine with lm encoder output
         combined_embeddings = torch.cat([encoder_output, kg_embeddings_expanded], dim=-1)
+        #print("combined_embeddings shape:", combined_embeddings.shape)
         pooled_output = combined_embeddings.mean(dim=1)
+        #print("pooled_output shape:", pooled_output.shape)  # Expected: (num_triples, 1200 + hidden_dim)
+
         # Result: (num_triples, 1200 + hidden_dim)
         
         # Apply attention mechanism
         # (num_triples, 1)
         attn_weights = F.softmax(self.attention(pooled_output), dim=-1)
         # Broadcasting for attn_weights
+        #print("attn_weights shape:", attn_weights.shape)  # Expected: (num_triples, 1)
+
         # Result: (num_triples, 1200 + hidden_dim)
         combined_output = attn_weights * pooled_output
+        #print("combined_output shape:", combined_output.shape)  # Expected: (num_triples, 1200 + hidden_dim)
         
         # Pass through MLP
         # Result: (num_triples, 1)
@@ -151,5 +158,6 @@ class ESLMKGE(nn.Module):
         # For outputs bounded between 0 and 1
         # Result: (num_triples, 1)
         regression_output = F.softmax(regression_output, dim=0) # use dim=0 due to not implemented data batches
+        #print("regression_output shape after activation:", regression_output.shape)  # Expected: (num_triples, 1)
 
         return regression_output

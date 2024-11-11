@@ -134,9 +134,12 @@ def main(args):
                         t_start = time.time()
                         train_loss = 0
 
+                        
                         # num is aritifical index
                         # eid is the entity id for the elements of the dictionary
                         for num, eid in enumerate(train_data_samples):
+
+                            #print("eid:", eid)
 
                             # list of triples
                             triples = dataset.get_triples(eid)
@@ -149,12 +152,14 @@ def main(args):
 
                             # Preprocessing (add [SEP] and build one string per triple)
                             triples_formatted = format_triples(literals)
+                            #print("triples_formatted:", len(triples_formatted))  
 
                             input_ids_list = []
                             attention_masks_list = []
 
                             
                             for triple in triples_formatted:
+                                
                                 # Tokenizing and adding of [CLS] token
                                 src_tokenized = tokenizer.encode_plus(
                                     triple, 
@@ -230,8 +235,10 @@ def main(args):
 
                             ##############################
                             input_ids_tensor = torch.tensor(input_ids_list).to(device)
+                            print("input_ids_tensor:", input_ids_tensor.shape) 
                             attention_masks_tensor = torch.tensor(attention_masks_list).to(device)
-                            
+                            print("attention_masks_tensor:", attention_masks_tensor.shape) 
+
                             # Creates weight values for all triples based on matchin with labels
                             # Weights are based on the count values from labels (how often does predicate-object-pair occur in gold solutions)
                             # Weights are then normalized
