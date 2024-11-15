@@ -234,8 +234,9 @@ def main(args):
                                 ### end apply kge
 
                             ##############################
+                            # Result: (num_triples, seq_len)
                             input_ids_tensor = torch.tensor(input_ids_list).to(device)
-                            print("input_ids_tensor:", input_ids_tensor.shape) 
+                            #print("input_ids_tensor:", input_ids_tensor.shape) 
                             attention_masks_tensor = torch.tensor(attention_masks_list).to(device)
                             print("attention_masks_tensor:", attention_masks_tensor.shape) 
 

@@ -123,7 +123,8 @@ class ESLMKGE(nn.Module):
         """
 
         # Embedding of tokens by llm
-        # (num_triples, seq_len, hidden_dim)
+        # In: (num_triples, seq_len)
+        # Result: (num_triples, seq_len, hidden_dim)
         encoder_output = self.lm_encoder(input_ids=input_ids, attention_mask=attention_mask).last_hidden_state
 
         # Expand KG Embeddings
