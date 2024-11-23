@@ -141,10 +141,10 @@ def main(args):
 
                             #print("eid:", eid)
 
-                            # list of triples
+                            # list of triples (as tuples) (IRI version)
                             triples = dataset.get_triples(eid)
 
-                            # dicitionary with the predicate-object pairs as keys and number of occurences as value
+                            # dicitionary with the predicate-object pairs (seperated by ++$++) as keys and number of occurences as value
                             labels = dataset.prepare_labels(eid)
 
                             # list of triples (literal version)
@@ -238,12 +238,15 @@ def main(args):
                             input_ids_tensor = torch.tensor(input_ids_list).to(device)
                             #print("input_ids_tensor:", input_ids_tensor.shape) 
                             attention_masks_tensor = torch.tensor(attention_masks_list).to(device)
-                            print("attention_masks_tensor:", attention_masks_tensor.shape) 
+                            #print("attention_masks_tensor:", attention_masks_tensor.shape) 
 
                             # Creates weight values for all triples based on matchin with labels
                             # Weights are based on the count values from labels (how often does predicate-object-pair occur in gold solutions)
                             # Weights are then normalized
                             targets = utils.tensor_from_weight(len(triples), triples, labels).to(device)
+                            #print("T:", triples)
+                            #print("L:", labels)
+                            #print("targets:", targets)    
 
                             if config.enrichment:
 

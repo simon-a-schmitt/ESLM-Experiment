@@ -94,6 +94,11 @@ class ESLMKGE(nn.Module):
             self.lm_encoder = AutoModel.from_pretrained(model_base)
             self.feat_dim = list(self.lm_encoder.modules())[-2].out_features
 
+        """
+        # Second-level T5 Encoder
+        self.second_lm_encoder = T5EncoderModel.from_pretrained(model_base)
+        """
+        
         # Attention layer
         self.attention = nn.Linear(self.feat_dim + kg_embedding_dim, 1)
         
@@ -136,11 +141,40 @@ class ESLMKGE(nn.Module):
         # Combine with lm encoder output
         combined_embeddings = torch.cat([encoder_output, kg_embeddings_expanded], dim=-1)
         #print("combined_embeddings shape:", combined_embeddings.shape)
-        pooled_output = combined_embeddings.mean(dim=1)
-        #print("pooled_output shape:", pooled_output.shape)  # Expected: (num_triples, 1200 + hidden_dim)
 
+        # Verification:
+        #######################################################################################################
+        # Mask padding tokens (attention_mask == 0) and compute mean only over non-padding tokens
+        mask = attention_mask.unsqueeze(-1).expand_as(combined_embeddings)  # Shape: (num_triples, seq_len, embedding_dim)
+        sum_embeddings = (combined_embeddings * mask).sum(dim=1)  # Sum of embeddings for non-padded tokens
+        count_non_padding = mask.sum(dim=1)  # Count of non-padded tokens
+
+        # print("A", sum_embeddings / count_non_padding)
+
+        #########################################################################################################
+
+
+        # pooled_output = combined_embeddings.mean(dim=1)
+        pooled_output = sum_embeddings / count_non_padding
+        #print("pooled_output shape:", pooled_output.shape)  # Expected: (num_triples, 1200 + hidden_dim)
+        # print("B", pooled_output)
         # Result: (num_triples, 1200 + hidden_dim)
+
+        """
+        # Combine triples into a batch of size 1 for second encoder
+        second_input_ids = pooled_output.unsqueeze(0)  # Shape: (1, num_triples, hidden_dim)
+        second_attention_mask = torch.ones(second_input_ids.size()[:-1], device=input_ids.device)
         
+        second_encoder_output = self.second_level_encoder(
+                inputs_embeds=pooled_output.unsqueeze(0),
+                attention_mask=second_attention_mask,
+        ).last_hidden_state
+
+        # Remove batch dimension for subsequent processing
+        second_level_output = second_level_output.squeeze(0)  # Shape: (num_triples, hidden_dim)
+
+        """
+
         # Apply attention mechanism
         # (num_triples, 1)
         attn_weights = F.softmax(self.attention(pooled_output), dim=-1)
