@@ -88,16 +88,21 @@ class ESLMKGE(nn.Module):
         """
         super(ESLMKGE, self).__init__()
         if model_name == "t5":
+            # Only encoder part is used
             self.lm_encoder = T5EncoderModel.from_pretrained(model_base)
             self.feat_dim = self.lm_encoder.config.d_model
         else:
             self.lm_encoder = AutoModel.from_pretrained(model_base)
             self.feat_dim = list(self.lm_encoder.modules())[-2].out_features
 
-        """
+        
         # Second-level T5 Encoder
-        self.second_lm_encoder = T5EncoderModel.from_pretrained(model_base)
-        """
+        self.second_level_encoder = T5EncoderModel.from_pretrained(model_base)
+
+        self.projection_layer = nn.Linear(self.feat_dim + kg_embedding_dim, self.feat_dim)
+
+        self.projection_layer_2 = nn.Linear( self.feat_dim, self.feat_dim + kg_embedding_dim)
+        
         
         # Attention layer
         self.attention = nn.Linear(self.feat_dim + kg_embedding_dim, 1)
@@ -154,13 +159,14 @@ class ESLMKGE(nn.Module):
         #########################################################################################################
 
 
-        # pooled_output = combined_embeddings.mean(dim=1)
-        pooled_output = sum_embeddings / count_non_padding
+        pooled_output = combined_embeddings.mean(dim=1)
+        # pooled_output = sum_embeddings / count_non_padding
         #print("pooled_output shape:", pooled_output.shape)  # Expected: (num_triples, 1200 + hidden_dim)
         # print("B", pooled_output)
         # Result: (num_triples, 1200 + hidden_dim)
 
-        """
+        pooled_output = self.projection_layer(pooled_output)
+        
         # Combine triples into a batch of size 1 for second encoder
         second_input_ids = pooled_output.unsqueeze(0)  # Shape: (1, num_triples, hidden_dim)
         second_attention_mask = torch.ones(second_input_ids.size()[:-1], device=input_ids.device)
@@ -171,9 +177,9 @@ class ESLMKGE(nn.Module):
         ).last_hidden_state
 
         # Remove batch dimension for subsequent processing
-        second_level_output = second_level_output.squeeze(0)  # Shape: (num_triples, hidden_dim)
+        pooled_output = second_encoder_output.squeeze(0)  # Shape: (num_triples, hidden_dim)
 
-        """
+        pooled_output = self.projection_layer_2(pooled_output)
 
         # Apply attention mechanism
         # (num_triples, 1)
