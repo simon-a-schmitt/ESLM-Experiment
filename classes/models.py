@@ -172,21 +172,21 @@ class ESLMKGE(nn.Module):
         # print("B", pooled_output)
         # Result: (num_triples, 1200 + hidden_dim)
 
-        pooled_output = self.projection_layer(pooled_output)
+        # pooled_output = self.projection_layer(pooled_output)
         
         # Combine triples into a batch of size 1 for second encoder
-        second_input_ids = pooled_output.unsqueeze(0)  # Shape: (1, num_triples, hidden_dim)
-        second_attention_mask = torch.ones(second_input_ids.size()[:-1], device=input_ids.device)
+        # second_input_ids = pooled_output.unsqueeze(0)  # Shape: (1, num_triples, hidden_dim)
+        # second_attention_mask = torch.ones(second_input_ids.size()[:-1], device=input_ids.device)
         
-        second_encoder_output = self.second_level_encoder(
-                inputs_embeds=pooled_output.unsqueeze(0),
-                attention_mask=second_attention_mask,
-        ).last_hidden_state
+        # second_encoder_output = self.second_level_encoder(
+        #         inputs_embeds=pooled_output.unsqueeze(0),
+        #         attention_mask=second_attention_mask,
+        # ).last_hidden_state
 
         # Remove batch dimension for subsequent processing
-        pooled_output = second_encoder_output.squeeze(0)  # Shape: (num_triples, hidden_dim)
+        # pooled_output = second_encoder_output.squeeze(0)  # Shape: (num_triples, hidden_dim)
 
-        pooled_output = self.projection_layer_2(pooled_output)
+        # pooled_output = self.projection_layer_2(pooled_output)
 
         # Apply attention mechanism
         # (num_triples, 1)
