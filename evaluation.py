@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import csv
 
 from evaluator.map import MAP
 from evaluator.fmeasure import FMeasure
@@ -32,8 +33,11 @@ def evaluation(dataset, k, model_name):
     total_ndcg=0
     total_fscore=0
     total_map_score=0
+    entity_ids = []
+
     for i in range(start[0], end[0]):
         t = i+1
+        entity_ids.append(t)
 
         # gold_list_top: list of list where each list contains the top k triples for respective gold summary
         # triples_dict: dictionary of triples with triple itself as key and index as value
@@ -63,6 +67,8 @@ def evaluation(dataset, k, model_name):
 
     for i in range(start[1], end[1]):
         t = i+1
+        entity_ids.append(t)
+
         gold_list_top, triples_dict, triple_tuples = get_all_data(dataset.db_path, t, k, dataset.file_n)
         rank_triples, encoded_rank_triples = get_rank_triples(IN_SUMM, t, k, triples_dict)
         topk_triples, encoded_topk_triples = get_topk_triples(IN_SUMM, t, k, triples_dict)
@@ -74,5 +80,22 @@ def evaluation(dataset, k, model_name):
         total_fscore += f_score
         all_fscore.append(f_score)
         all_map_scores.append(map_score)
+
+    
+    # Analyze all_fscore and write the eid for the 5% worst performing entities into a CSV file
+    num_worst = max(1, int(len(all_fscore) * 0.05))  # Calculate the number of entities corresponding to the bottom 5%
+    worst_indices = np.argsort(all_fscore)[:num_worst]  # Get the indices of the bottom 5% scores
+
+    worst_entities = [entity_ids[i] for i in worst_indices]  # Map indices to entity IDs
+
+    # Define the CSV file name
+    csv_file_name = f'worst_entities_{dataset.ds_name}_top{k}.csv'
+
+    # Write the worst performing entity IDs to a CSV file
+    with open(csv_file_name, 'w', newline='') as csvfile:
+        csvwriter = csv.writer(csvfile)
+        # csvwriter.writerow(['Dataset', 'Top K', 'Entity ID', 'F-Score'])
+        for idx in worst_indices:
+            csvwriter.writerow([dataset.ds_name, k, entity_ids[idx], all_fscore[idx]])
 
     print("{}@top{}: F-Measure={}, NDCG={}, MAP={}".format(dataset, k, np.average(all_fscore), np.average(all_ndcg_scores), np.average(all_map_scores)))
