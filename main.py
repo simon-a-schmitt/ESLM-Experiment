@@ -91,8 +91,18 @@ def main(args):
                     #print("Train Data Samples:")
                     #print(train_data_samples)
                     print(f"fold: {fold+1}, total entities: {train_data_size}", f"topk: top{topk}")
+
+                    # Create model directory
                     models_path = os.path.join(f"{main_model_dir}", f"eslm_checkpoint-{ds_name}-{topk}-{fold}")
-                    models_dir = os.path.join(os.getcwd(), models_path)
+
+                    workspace = r"C:\Users\simon\Documents\Uni\UniMaterial\Master\Seminar Knowledge Graphs and LLM\Workspace Test"
+
+                    models_dir = os.path.join(workspace, models_path)
+
+                    # models_dir = os.path.join(os.getcwd(), models_path)
+
+                    print(models_dir)
+
                     if not os.path.exists(models_dir):
                         os.makedirs(models_dir)
                     if config.enrichment:
@@ -161,6 +171,7 @@ def main(args):
                             for triple in triples_formatted:
                                 
                                 # Tokenizing and adding of [CLS] token
+                                # Max sequence length is set to 40, rest is padded
                                 src_tokenized = tokenizer.encode_plus(
                                     triple, 
                                     max_length=config.max_length,
@@ -182,6 +193,7 @@ def main(args):
                                 src_segment_ids = src_tokenized['token_type_ids']
 
                                 # Two dimensional arrays with each row representing a triple as token sequence
+                                # print(len(src_input_ids))
                                 input_ids_list.append(src_input_ids)
                                 attention_masks_list.append(src_attention_mask)
 
@@ -436,7 +448,9 @@ def main(args):
                         model = ESLM(model_name, model_base)
 
                     # Load model
-                    models_path = os.path.join(f"{main_model_dir}", f"eslm_checkpoint-{ds_name}-{topk}-{fold}")
+
+                    workspace = r"C:\Users\simon\Documents\Uni\UniMaterial\Master\Seminar Knowledge Graphs and LLM\Workspace Test"
+                    models_path = os.path.join(workspace, f"{main_model_dir}", f"eslm_checkpoint-{ds_name}-{topk}-{fold}")
                     print(models_path)
                     try:
                         checkpoint = torch.load(os.path.join(models_path, f"checkpoint_latest_{fold}.pt"))

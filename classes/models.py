@@ -28,6 +28,7 @@ class ESLM(nn.Module):
         if self.model_name=="t5":
             self.lm_encoder = T5EncoderModel.from_pretrained(model_base)
             self.feat_dim = self.lm_encoder.config.d_model
+            
         else:
             self.lm_encoder = AutoModel.from_pretrained(model_base)
             self.feat_dim = list(self.lm_encoder.modules())[-2].out_features
@@ -91,10 +92,15 @@ class ESLMKGE(nn.Module):
             # Only encoder part is used
             self.lm_encoder = T5EncoderModel.from_pretrained(model_base)
             self.feat_dim = self.lm_encoder.config.d_model
+            self.num_heads = self.lm_encoder.config.num_heads   
+            self.num_layers = self.lm_encoder.config.num_layers
         else:
             self.lm_encoder = AutoModel.from_pretrained(model_base)
             self.feat_dim = list(self.lm_encoder.modules())[-2].out_features
+            self.num_heads = self.lm_encoder.config.num_attention_heads
+            self.num_layers = self.lm_encoder.config.num_hidden_layers
 
+        #print(self.num_heads, " ", self.num_layers," ", self.feat_dim)
         
         # Second-level T5 Encoder
         self.second_level_encoder = T5EncoderModel.from_pretrained(model_base)
@@ -136,6 +142,7 @@ class ESLMKGE(nn.Module):
         # In: (num_triples, seq_len)
         # Result: (num_triples, seq_len, hidden_dim)
         encoder_output = self.lm_encoder(input_ids=input_ids, attention_mask=attention_mask).last_hidden_state
+        #print(encoder_output.shape)
 
         # Expand KG Embeddings
         # Before: (num_triples, 1, 1200)

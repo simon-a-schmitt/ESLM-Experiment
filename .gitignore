@@ -1,7 +1,8 @@
 # Modified
 models-eslm-t5
 models-eslm-kge-t5
-
+models-eslm-kge-bert
+models-eslm-kge-ernie
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
