@@ -81,7 +81,7 @@ def evaluation(dataset, k, model_name):
         all_fscore.append(f_score)
         all_map_scores.append(map_score)
 
-    
+    print(len(all_fscore))
     # Analyze all_fscore and write the eid for the 5% worst performing entities into a CSV file
     num_worst = max(1, int(len(all_fscore) * 0.05))  # Calculate the number of entities corresponding to the bottom 5%
     worst_indices = np.argsort(all_fscore)[:num_worst]  # Get the indices of the bottom 5% scores
@@ -99,3 +99,7 @@ def evaluation(dataset, k, model_name):
             csvwriter.writerow([dataset.ds_name, k, entity_ids[idx], all_fscore[idx]])
 
     print("{}@top{}: F-Measure={}, NDCG={}, MAP={}".format(dataset, k, np.average(all_fscore), np.average(all_ndcg_scores), np.average(all_map_scores)))
+
+
+
+    ## Hast be done one level higher!
