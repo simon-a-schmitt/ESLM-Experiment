@@ -83,7 +83,7 @@ def evaluation(dataset, k, model_name):
 
     print(len(all_fscore))
     # Analyze all_fscore and write the eid for the 5% worst performing entities into a CSV file
-    num_worst = max(1, int(len(all_fscore) * 0.05))  # Calculate the number of entities corresponding to the bottom 5%
+    num_worst = max(1, int(len(all_fscore) * 0.30))  # Calculate the number of entities corresponding to the bottom 5%
     worst_indices = np.argsort(all_fscore)[:num_worst]  # Get the indices of the bottom 5% scores
 
     worst_entities = [entity_ids[i] for i in worst_indices]  # Map indices to entity IDs
