@@ -9,6 +9,7 @@ import os
 from rdflib.plugins.parsers.ntriples import NTriplesParser, Sink
 from classes.helpers import Utils
 import glob
+import json
 
 UTILS = Utils()
 class ESBenchmark:
@@ -223,6 +224,28 @@ class ESBenchmark:
             if triple not in triples_dict:
                 triples_dict[triple] = len(triples_dict)
         return triples_dict
+    
+    def get_entity_data(self):
+        base_path = os.path.join(os.getcwd(), "datasets_entity_information")
+        if self.ds_name == "dbpedia":
+            file_path = os.path.join(base_path, "dbpedia_entity_data.json")
+        elif self.ds_name == "lmdb":
+            file_path = os.path.join(base_path, "lmdb_entity_data.json")
+        elif self.ds_name == "faces":
+            file_path = os.path.join(base_path, "faces_entity_data.json")
+
+
+        try:
+            with open(file_path, 'r', encoding='utf-8') as file:
+                data = json.load(file)
+            # print(f"Data successfully read from {file_path}.")
+            return data
+        except Exception as e:
+            print(f"An error occurred while reading from the file: {e}")
+            return {}
+
+
+
     @staticmethod
     def read_split(fold_path, split_name):
         """Read data from splitted txt"""

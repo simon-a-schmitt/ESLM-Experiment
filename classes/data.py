@@ -33,6 +33,7 @@ def build_dictionary(input_dict):
 def format_triples(triples): 
     formatted_triples=[]
     for triple in triples:
+        #print("Triple in:", triple)
         h, r, t = triple
         # head
         head = h.split('/')[-1]
@@ -60,6 +61,8 @@ def format_triples(triples):
         else:
             input_formatted = f"{head}[SEP]{relation}"
             formatted_triples.append(input_formatted)
+
+        #print("Triple out:", input_formatted)
     return formatted_triples
 
 def writer(db_dir, directory, eid, top_or_rank, topk, rank_list):

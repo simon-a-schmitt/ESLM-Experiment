@@ -66,6 +66,9 @@ def main(args):
         print("Training on progress ....")
         for ds_name in config.ds_name:
             print(f"Dataset: {ds_name}")
+
+
+            
             if config.enrichment:
                 entity2vec, pred2vec, entity2ix, pred2ix = load_dglke(ds_name)
                 
@@ -82,6 +85,8 @@ def main(args):
 
                 # Initialize the dataset
                 dataset = ESBenchmark(ds_name, 6, topk, False)
+
+                dict_entity_information = dataset.get_entity_data()
 
                 # Load training and validation data
                 train_data, valid_data = dataset.get_training_dataset()
@@ -157,7 +162,7 @@ def main(args):
                             # dicitionary with the predicate-object pairs (seperated by ++$++) as keys and number of occurences as value
                             labels = dataset.prepare_labels(eid)
 
-                            # list of triples (literal version)
+                            # list of tuples, one tuple per triple which contains the triple components as literals
                             literals = dataset.get_literals(eid)
 
                             # Preprocessing (add [SEP] and build one string per triple)
@@ -166,9 +171,14 @@ def main(args):
 
                             input_ids_list = []
                             attention_masks_list = []
+                    
 
+                            context_string = f"The entity {dict_entity_information[str(eid)][1]}, a {dict_entity_information[str(eid)][0]}, is being summarized. How relevant is the following triple for this summary?[SEP]"
                             
                             for triple in triples_formatted:
+
+                                triple = context_string + triple
+                                #print(triple)
                                 
                                 # Tokenizing and adding of [CLS] token
                                 # Max sequence length is set to 40, rest is padded
@@ -196,6 +206,10 @@ def main(args):
                                 # print(len(src_input_ids))
                                 input_ids_list.append(src_input_ids)
                                 attention_masks_list.append(src_attention_mask)
+
+                                # for token_id, attention_mask, segment_id in zip(src_input_ids, src_attention_mask, src_segment_ids):
+                                #     decoded_token = tokenizer.decode(token_id)
+                                #     print(f"Token ID: {token_id}, Decoded Token: {decoded_token}, Attention Mask: {attention_mask}")
 
                                 """
                                 # Print tokens and their IDs
@@ -575,7 +589,7 @@ if __name__ == "__main__":
     parser.add_argument('--no-enrichment', dest='enrichment', action='store_false')
     parser.set_defaults(enrichment=True)
     parser.add_argument("--model", type=str, default="", help="")
-    parser.add_argument("--max_length", type=int, default=40, help="")
+    parser.add_argument("--max_length", type=int, default=70, help="")
     parser.add_argument("--epochs", type=int, default=10, help="")
     parser.add_argument("--learning_rate", type=int, default=5e-5, help="")
     args = parser.parse_args()
