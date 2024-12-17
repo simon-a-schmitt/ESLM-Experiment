@@ -174,6 +174,24 @@ def main(args):
                     
 
                             context_string = f"The entity {dict_entity_information[str(eid)][1]}, a {dict_entity_information[str(eid)][0]}, is being summarized. How relevant is the following triple for this summary?[SEP]"
+
+                            # Tokenize the context string separately
+                            context_tokenized = tokenizer.encode_plus(
+                                context_string,
+                                max_length=config.max_length,
+                                padding='max_length',
+                                truncation=True,
+                                return_attention_mask=True,
+                                return_token_type_ids=True,
+                                add_special_tokens=True
+                            )
+
+                            # Store the token indices of the context string
+                            context_token_indices = context_tokenized['input_ids']
+
+                            # Calculate the length of the context token sequence without padding tokens
+                            context_length_without_padding = sum(1 for token_id in context_token_indices if token_id != tokenizer.pad_token_id) - 1
+
                             
                             for triple in triples_formatted:
 
@@ -211,15 +229,19 @@ def main(args):
                                 #     decoded_token = tokenizer.decode(token_id)
                                 #     print(f"Token ID: {token_id}, Decoded Token: {decoded_token}, Attention Mask: {attention_mask}")
 
-                                """
-                                # Print tokens and their IDs
-                                print("Tokens and their IDs:")
-                                for token_id in src_input_ids:
-                                    if token_id != tokenizer.pad_token_id:  # Skip padding tokens
-                                        token = tokenizer.decode([token_id])  # Decoding the token ID to get the actual token
-                                        print(f"Token: {token}, ID: {token_id}")
 
-                                """
+                                # print(context_token_indices)
+                                # print("Context-IDs:", context_length_without_padding)
+
+                                
+                                # # Print tokens and their IDs
+                                # print("Tokens and their IDs:")
+                                # for token_id in src_input_ids:
+                                #     if token_id != tokenizer.pad_token_id:  # Skip padding tokens
+                                #         token = tokenizer.decode([token_id])  # Decoding the token ID to get the actual token
+                                #         print(f"Token: {token}, ID: {token_id}")
+
+                                
 
                             ### apply kge
                             if config.enrichment:
@@ -278,7 +300,7 @@ def main(args):
 
                                 # Call forward method
                                 # Result: (num_triples, 1)
-                                outputs = model(input_ids_tensor, attention_masks_tensor, kg_embeds)
+                                outputs = model(input_ids_tensor, attention_masks_tensor, kg_embeds, context_length_without_padding)
                             else:
                                 # Call forward method
                                 # Result: (num_triples, 1)
@@ -286,12 +308,14 @@ def main(args):
 
                             # Reshaping the logits
                             reshaped_logits = outputs
-                            #print(reshaped_logits)
-
+                            
                             # Ensure your targets tensor is of shape [103, 1]
                             # Add extra dimension
                             # Result: (num_triples, 1)
                             reshaped_targets = targets.unsqueeze(-1)
+
+                            print("Entity: ", eid)
+                            print(reshaped_logits)
 
                             # Now compute the loss
                             loss = criterion(reshaped_logits, reshaped_targets)
@@ -392,13 +416,17 @@ def main(args):
                                 attention_masks_tensor = torch.tensor(attention_masks_list).to(device)
                                 targets = utils.tensor_from_weight(len(triples), triples, labels).to(device)
                                 if config.enrichment:
-                                    outputs = model(input_ids_tensor, attention_masks_tensor, kg_embeds)
+                                    outputs = model(input_ids_tensor, attention_masks_tensor, kg_embeds, context_length_without_padding)
                                 else:
                                     outputs = model(input_ids_tensor, attention_masks_tensor)
                                 # Reshaping the logits
                                 reshaped_logits = outputs
                                 # Ensure your targets tensor is of shape [103, 1]
                                 reshaped_targets = targets.unsqueeze(-1)
+
+
+                                
+
                                 # Now compute the loss
                                 loss = criterion(reshaped_logits, reshaped_targets)
                                 valid_loss += loss.item()

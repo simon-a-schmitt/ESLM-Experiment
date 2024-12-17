@@ -125,7 +125,7 @@ class ESLMKGE(nn.Module):
             nn.Linear(mlp_hidden_dim, 1)  # Output layer for regression
         )
 
-    def forward(self, input_ids, attention_mask, kg_embeddings):
+    def forward(self, input_ids, attention_mask, kg_embeddings, context_length_without_padding):
         """
         Forward pass
         
@@ -164,9 +164,24 @@ class ESLMKGE(nn.Module):
         # print("A", sum_embeddings / count_non_padding)
 
         #########################################################################################################
+        # Define the starting index after which to include entries
+        start_index = context_length_without_padding 
 
+        # Slice the tensors to include only entries after the start_index
+        combined_embeddings_sliced = combined_embeddings[:, start_index:, :]
+        mask_sliced = mask[:, start_index:, :]
 
-        pooled_output = combined_embeddings.mean(dim=1)
+        sum_embeddings = (combined_embeddings_sliced * mask_sliced).sum(dim=1)  # Sum of embeddings for non-padded tokens
+        count_non_padding = mask_sliced.sum(dim=1)  # Count of non-padded tokens
+        #########################################################################################################
+
+        # Modified Mean for prompting
+        pooled_output = sum_embeddings / count_non_padding
+
+        # Standard
+        # pooled_output = combined_embeddings.mean(dim=1)
+
+        # Modified Mean
         # pooled_output = sum_embeddings / count_non_padding
         #print("pooled_output shape:", pooled_output.shape)  # Expected: (num_triples, 1200 + hidden_dim)
         # print("B", pooled_output)
@@ -207,5 +222,7 @@ class ESLMKGE(nn.Module):
         # Result: (num_triples, 1)
         regression_output = F.softmax(regression_output, dim=0) # use dim=0 due to not implemented data batches
         #print("regression_output shape after activation:", regression_output.shape)  # Expected: (num_triples, 1)
+
+       
 
         return regression_output
