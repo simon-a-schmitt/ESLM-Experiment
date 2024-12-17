@@ -314,8 +314,8 @@ def main(args):
                             # Result: (num_triples, 1)
                             reshaped_targets = targets.unsqueeze(-1)
 
-                            print("Entity: ", eid)
-                            print(reshaped_logits)
+                            #print("Entity: ", eid)
+                            #print(reshaped_logits)
 
                             # Now compute the loss
                             loss = criterion(reshaped_logits, reshaped_targets)
