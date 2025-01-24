@@ -103,7 +103,11 @@ class ESLMKGE(nn.Module):
         #print(self.num_heads, " ", self.num_layers," ", self.feat_dim)
         
         # Second-level T5 Encoder
-        self.second_level_encoder = T5EncoderModel.from_pretrained(model_base)
+        # T5
+        # self.second_level_encoder = T5EncoderModel.from_pretrained(model_base)
+
+        # ERNIE 
+        self.second_level_encoder = AutoModel.from_pretrained("nghuyong/ernie-2.0-en")
 
         self.projection_layer = nn.Linear(self.feat_dim + kg_embedding_dim, self.feat_dim)
 
@@ -125,7 +129,9 @@ class ESLMKGE(nn.Module):
             nn.Linear(mlp_hidden_dim, 1)  # Output layer for regression
         )
 
-    def forward(self, input_ids, attention_mask, kg_embeddings, context_length_without_padding):
+        self.mode = "prompting"
+
+    def forward(self, input_ids, attention_mask, kg_embeddings):
         """
         Forward pass
         
@@ -154,6 +160,46 @@ class ESLMKGE(nn.Module):
         combined_embeddings = torch.cat([encoder_output, kg_embeddings_expanded], dim=-1)
         #print("combined_embeddings shape:", combined_embeddings.shape)
 
+
+        if self.mode == "second-level encoder":
+            pooled_output = combined_embeddings.mean(dim=1)
+
+            pooled_output = self.projection_layer(pooled_output)
+        
+            # Combine triples into a batch of size 1 for second encoder
+            second_input_ids = pooled_output.unsqueeze(0)  # Shape: (1, num_triples, hidden_dim)
+            second_attention_mask = torch.ones(second_input_ids.size()[:-1], device=input_ids.device)
+            
+            second_encoder_output = self.second_level_encoder(
+                   inputs_embeds=pooled_output.unsqueeze(0),
+                   attention_mask=second_attention_mask,
+            ).last_hidden_state
+
+            # Remove batch dimension for subsequent processing
+            pooled_output = second_encoder_output.squeeze(0)  # Shape: (num_triples, hidden_dim)
+
+            pooled_output = self.projection_layer_2(pooled_output)
+
+        elif self.mode == "modified information fustion":
+            pooled_output = self.projection_layer(combined_embeddings)
+
+            # Mask padding tokens (attention_mask == 0) and compute mean only over non-padding tokens
+            mask = attention_mask.unsqueeze(-1).expand_as(combined_embeddings)  # Shape: (num_triples, seq_len, embedding_dim)
+            sum_embeddings = (combined_embeddings * mask).sum(dim=1)  # Sum of embeddings for non-padded tokens
+            count_non_padding = mask.sum(dim=1)  # Count of non-padded tokens
+
+            pooled_output = sum_embeddings / count_non_padding
+
+        elif self.mode == "prompting":
+            pooled_output = combined_embeddings.mean(dim=1)
+
+        elif self.mode == "standard":
+            pooled_output = combined_embeddings.mean(dim=1)
+
+        else:
+            raise ValueError("Invalid mode")
+
+
         # Verification:
         #######################################################################################################
         # Mask padding tokens (attention_mask == 0) and compute mean only over non-padding tokens
@@ -163,23 +209,12 @@ class ESLMKGE(nn.Module):
 
         # print("A", sum_embeddings / count_non_padding)
 
-        #########################################################################################################
-        # Define the starting index after which to include entries
-        start_index = context_length_without_padding 
-
-        # Slice the tensors to include only entries after the start_index
-        combined_embeddings_sliced = combined_embeddings[:, start_index:, :]
-        mask_sliced = mask[:, start_index:, :]
-
-        sum_embeddings = (combined_embeddings_sliced * mask_sliced).sum(dim=1)  # Sum of embeddings for non-padded tokens
-        count_non_padding = mask_sliced.sum(dim=1)  # Count of non-padded tokens
-        #########################################################################################################
-
+        
         # Modified Mean for prompting
-        pooled_output = sum_embeddings / count_non_padding
+        # pooled_output = sum_embeddings / count_non_padding
 
         # Standard
-        # pooled_output = combined_embeddings.mean(dim=1)
+        pooled_output = combined_embeddings.mean(dim=1)
 
         # Modified Mean
         # pooled_output = sum_embeddings / count_non_padding
@@ -202,6 +237,10 @@ class ESLMKGE(nn.Module):
         # pooled_output = second_encoder_output.squeeze(0)  # Shape: (num_triples, hidden_dim)
 
         # pooled_output = self.projection_layer_2(pooled_output)
+
+
+
+
 
         # Apply attention mechanism
         # (num_triples, 1)

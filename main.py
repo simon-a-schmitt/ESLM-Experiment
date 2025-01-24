@@ -36,6 +36,8 @@ def main(args):
     device = config.device
     model_name = config.model_name
 
+    prompting = True
+
     # Determine base model
     if model_name == "bert":
         model_base = "bert-base-uncased"
@@ -175,29 +177,13 @@ def main(args):
 
                             context_string = f"The entity {dict_entity_information[str(eid)][1]}, a {dict_entity_information[str(eid)][0]}, is being summarized. How relevant is the following triple for this summary?[SEP]"
 
-                            # Tokenize the context string separately
-                            context_tokenized = tokenizer.encode_plus(
-                                context_string,
-                                max_length=config.max_length,
-                                padding='max_length',
-                                truncation=True,
-                                return_attention_mask=True,
-                                return_token_type_ids=True,
-                                add_special_tokens=True
-                            )
-
-                            # Store the token indices of the context string
-                            context_token_indices = context_tokenized['input_ids']
-
-                            # Calculate the length of the context token sequence without padding tokens
-                            context_length_without_padding = sum(1 for token_id in context_token_indices if token_id != tokenizer.pad_token_id) - 1
-
                             
                             for triple in triples_formatted:
-
-                                triple = context_string + triple
-                                #print(triple)
                                 
+                                if prompting:
+                                    triple = context_string + triple
+                                
+                                print(triple)
                                 # Tokenizing and adding of [CLS] token
                                 # Max sequence length is set to 40, rest is padded
                                 src_tokenized = tokenizer.encode_plus(
@@ -300,7 +286,7 @@ def main(args):
 
                                 # Call forward method
                                 # Result: (num_triples, 1)
-                                outputs = model(input_ids_tensor, attention_masks_tensor, kg_embeds, context_length_without_padding)
+                                outputs = model(input_ids_tensor, attention_masks_tensor, kg_embeds)
                             else:
                                 # Call forward method
                                 # Result: (num_triples, 1)
@@ -364,26 +350,11 @@ def main(args):
 
                                 context_string = f"The entity {dict_entity_information[str(eid)][1]}, a {dict_entity_information[str(eid)][0]}, is being summarized. How relevant is the following triple for this summary?[SEP]"
 
-                                # Tokenize the context string separately
-                                context_tokenized = tokenizer.encode_plus(
-                                    context_string,
-                                    max_length=config.max_length,
-                                    padding='max_length',
-                                    truncation=True,
-                                    return_attention_mask=True,
-                                    return_token_type_ids=True,
-                                    add_special_tokens=True
-                                )
-
-                                # Store the token indices of the context string
-                                context_token_indices = context_tokenized['input_ids']
-
-                                # Calculate the length of the context token sequence without padding tokens
-                                context_length_without_padding = sum(1 for token_id in context_token_indices if token_id != tokenizer.pad_token_id) - 1
-
-
 
                                 for triple in triples_formatted:
+                                    if prompting:
+                                        triple = context_string + triple
+
                                     src_tokenized = tokenizer.encode_plus(
                                         triple, 
                                         max_length=config.max_length,
@@ -502,6 +473,7 @@ def main(args):
                 entity2ix_size = len(entity2ix)
             for topk in config.topk:
                 dataset = ESBenchmark(ds_name, 6, topk, False)
+                dict_entity_information = dataset.get_entity_data()
                 test_data = dataset.get_testing_dataset()
                 for fold in range(config.k_fold):
                     test_data_size = len(test_data[fold][0])
@@ -535,7 +507,12 @@ def main(args):
                             triples_formatted = format_triples(literals)
                             input_ids_list = []
                             attention_masks_list = []
+
+                            context_string = f"The entity {dict_entity_information[str(eid)][1]}, a {dict_entity_information[str(eid)][0]}, is being summarized. How relevant is the following triple for this summary?[SEP]"
                             for triple in triples_formatted:
+                                if prompting:
+                                    triple = context_string + triple
+
                                 src_tokenized = tokenizer.encode_plus(
                                     triple, 
                                     max_length=config.max_length,
