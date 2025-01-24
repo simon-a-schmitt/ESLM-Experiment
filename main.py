@@ -409,7 +409,7 @@ def main(args):
                                 attention_masks_tensor = torch.tensor(attention_masks_list).to(device)
                                 targets = utils.tensor_from_weight(len(triples), triples, labels).to(device)
                                 if config.enrichment:
-                                    outputs = model(input_ids_tensor, attention_masks_tensor, kg_embeds, context_length_without_padding)
+                                    outputs = model(input_ids_tensor, attention_masks_tensor, kg_embeds)
                                 else:
                                     outputs = model(input_ids_tensor, attention_masks_tensor)
                                 # Reshaping the logits
