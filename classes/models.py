@@ -11,7 +11,7 @@ class ESLM(nn.Module):
     """
     Employing contextual language models for entity summarization tasks
     """
-    def __init__(self, model_name, model_base, mlp_hidden_dim=512):
+    def __init__(self, model_name, model_base, mode, mlp_hidden_dim=512):
         """
         Model initialization
         
@@ -32,6 +32,14 @@ class ESLM(nn.Module):
         else:
             self.lm_encoder = AutoModel.from_pretrained(model_base)
             self.feat_dim = list(self.lm_encoder.modules())[-2].out_features
+
+        
+        if mode == "second-level-encoder":
+            self.second_level_encoder = T5EncoderModel.from_pretrained(model_base)
+
+            self.projection_layer = nn.Linear(self.feat_dim, self.feat_dim)
+
+            self.projection_layer_2 = nn.Linear( self.feat_dim, self.feat_dim)
             
         self.attention = nn.Linear(self.feat_dim, 1)
         self.regression = nn.Linear(self.feat_dim, 1)  # Output layer for regression
@@ -45,6 +53,8 @@ class ESLM(nn.Module):
             nn.Linear(mlp_hidden_dim, 1)  # Output layer for regression
         )
 
+        self.mode = mode
+
     def forward(self, input_ids, attention_mask):
         """
         Forward pass
@@ -55,19 +65,92 @@ class ESLM(nn.Module):
                 between meaningful data and padding data
         """
         encoder_output = self.lm_encoder(input_ids=input_ids, attention_mask=attention_mask).last_hidden_state
+
+        print("endcoder_output", encoder_output.shape)
+
+
+        if self.mode == "second-level-encoder":
+            pooled_output = encoder_output.mean(dim=1)
+
+            pooled_output = self.projection_layer(pooled_output)
         
-        attn_weights = F.softmax(self.attention(encoder_output), dim=-1)
-        combined_output = attn_weights * encoder_output
+            # Combine triples into a batch of size 1 for second encoder
+            second_input_ids = pooled_output.unsqueeze(0)  # Shape: (1, num_triples, hidden_dim)
+            second_attention_mask = torch.ones(second_input_ids.size()[:-1], device=input_ids.device)
+            
+            second_encoder_output = self.second_level_encoder(
+                   inputs_embeds=pooled_output.unsqueeze(0),
+                   attention_mask=second_attention_mask,
+            ).last_hidden_state
+
+            # Remove batch dimension for subsequent processing
+            pooled_output = second_encoder_output.squeeze(0)  # Shape: (num_triples, hidden_dim)
+
+            pooled_output = self.projection_layer_2(pooled_output)
+
+        elif self.mode == "modified-information-fusion":
+            # pooled_output = self.projection_layer(encoder_output)
+
+            # Mask padding tokens (attention_mask == 0) and compute mean only over non-padding tokens
+            mask = attention_mask.unsqueeze(-1).expand_as(encoder_output)  # Shape: (num_triples, seq_len, embedding_dim)
+            sum_embeddings = (encoder_output * mask).sum(dim=1)  # Sum of embeddings for non-padded tokens
+            count_non_padding = mask.sum(dim=1)  # Count of non-padded tokens
+
+            pooled_output = sum_embeddings / count_non_padding
+
+        elif self.mode == "prompting":
+            pooled_output = encoder_output.mean(dim=1)
+
+        elif self.mode == "standard":
+            pooled_output = encoder_output.mean(dim=1)
+
+            print("pooled output", pooled_output.shape)
+
+
+        else:
+            raise ValueError("Invalid mode")
+        
+        
+        attn_weights = F.softmax(self.attention(pooled_output), dim=-1)
+        combined_output = attn_weights * pooled_output
+
+        print("combined output", combined_output.shape)
+
+
         
         # Pass through MLP
         regression_output = self.mlp(combined_output)
+
+        print("regression output 1", regression_output.shape)
         
         # Averaging across the sequence
-        regression_output = regression_output.mean(dim=1)  # This averages the output across the sequence
+        # regression_output = regression_output.mean(dim=1)  # This averages the output across the sequence
 
         # Apply activation 
         # For outputs bounded between 0 and 1
         regression_output = F.softmax(regression_output, dim=0) # use dim=0 due to not implemented data batches
+
+        print("regression output 2", regression_output.shape)
+
+        # regression_output = regression_output.squeeze(-1) 
+
+        print("regression output 3", regression_output.shape)
+
+
+        # encoder_output = self.lm_encoder(input_ids=input_ids, attention_mask=attention_mask).last_hidden_state
+        
+        # attn_weights = F.softmax(self.attention(encoder_output), dim=-1)
+        # combined_output = attn_weights * encoder_output
+        
+        # # Pass through MLP
+        # regression_output = self.mlp(combined_output)
+        
+        # # Averaging across the sequence
+        # regression_output = regression_output.mean(dim=1)  # This averages the output across the sequence
+
+        # # Apply activation 
+        # # For outputs bounded between 0 and 1
+        # regression_output = F.softmax(regression_output, dim=0) # use dim=0 due to not implemented data batches
 
         return regression_output
 
@@ -75,7 +158,7 @@ class ESLMKGE(nn.Module):
     """
     Implementation ESLM Enrichment by augmenting Knowledge Graph Embeddings(KGEs)
     """
-    def __init__(self, model_name, model_base, kg_embedding_dim=1200, mlp_hidden_dim=512):
+    def __init__(self, model_name, model_base, mode, kg_embedding_dim=1200, mlp_hidden_dim=512):
         """
         Model initialization
         
@@ -102,16 +185,14 @@ class ESLMKGE(nn.Module):
 
         #print(self.num_heads, " ", self.num_layers," ", self.feat_dim)
         
-        # Second-level T5 Encoder
-        # T5
-        # self.second_level_encoder = T5EncoderModel.from_pretrained(model_base)
+        if mode == "second-level-encoder":
+            self.second_level_encoder = T5EncoderModel.from_pretrained(model_base)
 
-        # ERNIE 
-        self.second_level_encoder = AutoModel.from_pretrained("nghuyong/ernie-2.0-en")
+            self.projection_layer = nn.Linear(self.feat_dim + kg_embedding_dim, self.feat_dim)
 
-        self.projection_layer = nn.Linear(self.feat_dim + kg_embedding_dim, self.feat_dim)
+            self.projection_layer_2 = nn.Linear( self.feat_dim, self.feat_dim + kg_embedding_dim)
 
-        self.projection_layer_2 = nn.Linear( self.feat_dim, self.feat_dim + kg_embedding_dim)
+        
         
         
         # Attention layer
@@ -129,7 +210,7 @@ class ESLMKGE(nn.Module):
             nn.Linear(mlp_hidden_dim, 1)  # Output layer for regression
         )
 
-        self.mode = "prompting"
+        self.mode = mode
 
     def forward(self, input_ids, attention_mask, kg_embeddings):
         """
@@ -161,7 +242,7 @@ class ESLMKGE(nn.Module):
         #print("combined_embeddings shape:", combined_embeddings.shape)
 
 
-        if self.mode == "second-level encoder":
+        if self.mode == "second-level-encoder":
             pooled_output = combined_embeddings.mean(dim=1)
 
             pooled_output = self.projection_layer(pooled_output)
@@ -180,8 +261,8 @@ class ESLMKGE(nn.Module):
 
             pooled_output = self.projection_layer_2(pooled_output)
 
-        elif self.mode == "modified information fustion":
-            pooled_output = self.projection_layer(combined_embeddings)
+        elif self.mode == "modified-information-fusion":
+            # pooled_output = self.projection_layer(combined_embeddings)
 
             # Mask padding tokens (attention_mask == 0) and compute mean only over non-padding tokens
             mask = attention_mask.unsqueeze(-1).expand_as(combined_embeddings)  # Shape: (num_triples, seq_len, embedding_dim)
@@ -214,7 +295,7 @@ class ESLMKGE(nn.Module):
         # pooled_output = sum_embeddings / count_non_padding
 
         # Standard
-        pooled_output = combined_embeddings.mean(dim=1)
+        # pooled_output = combined_embeddings.mean(dim=1)
 
         # Modified Mean
         # pooled_output = sum_embeddings / count_non_padding

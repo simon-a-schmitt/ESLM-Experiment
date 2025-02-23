@@ -35,8 +35,8 @@ def main(args):
     do_test = config.do_test
     device = config.device
     model_name = config.model_name
+    mode = config.mode
 
-    prompting = True
 
     # Determine base model
     if model_name == "bert":
@@ -48,6 +48,20 @@ def main(args):
     else:
         print("please choose the correct model name: bert/ernie/t5")
         sys.exit()
+
+    # Determine mode
+    if ((mode == "standard") | (mode == "prompting") | (mode == "second-level-encoder") | (mode == "modified-information-fusion")):
+        pass
+    else:
+        print("please choose an appropriate mode: standard/prompting/second-level-encoder/modified-information-fusion")
+        sys.exit()
+
+
+    # Prompting or not
+    if mode == "prompting":
+        prompting = True
+    else:
+        prompting = False
 
     # With KGE or without
     if config.enrichment:
@@ -106,16 +120,14 @@ def main(args):
 
                     models_dir = os.path.join(workspace, models_path)
 
-                    # models_dir = os.path.join(os.getcwd(), models_path)
-
-                    print(models_dir)
+                
 
                     if not os.path.exists(models_dir):
                         os.makedirs(models_dir)
                     if config.enrichment:
-                        model = ESLMKGE(model_name, model_base)
+                        model = ESLMKGE(model_name, model_base, mode)
                     else:
-                        model = ESLM(model_name, model_base)
+                        model = ESLM(model_name, model_base, mode)
                     param_optimizer = list(model.named_parameters())
 
                     # No weight decay for certain parameters
@@ -183,7 +195,7 @@ def main(args):
                                 if prompting:
                                     triple = context_string + triple
                                 
-                                print(triple)
+                                # print(triple)
                                 # Tokenizing and adding of [CLS] token
                                 # Max sequence length is set to 40, rest is padded
                                 src_tokenized = tokenizer.encode_plus(
@@ -202,6 +214,8 @@ def main(args):
 
                                 # What are real tokens (that the model should attend to)
                                 src_attention_mask = src_tokenized['attention_mask']
+
+                                #print(src_attention_mask)
 
                                 # Segments within the sequence (irrelevant in this case)
                                 src_segment_ids = src_tokenized['token_type_ids']
@@ -344,6 +358,8 @@ def main(args):
                                 triples = dataset.get_triples(eid)
                                 labels = dataset.prepare_labels(eid)
                                 literals = dataset.get_literals(eid)
+
+                                # add [SEP] token and build one string per triple
                                 triples_formatted = format_triples(literals)
                                 input_ids_list = []
                                 attention_masks_list = []
@@ -616,6 +632,7 @@ if __name__ == "__main__":
     parser.add_argument('--no-enrichment', dest='enrichment', action='store_false')
     parser.set_defaults(enrichment=True)
     parser.add_argument("--model", type=str, default="", help="")
+    parser.add_argument("--mode", type=str, default="standard", help="")
     parser.add_argument("--max_length", type=int, default=70, help="")
     parser.add_argument("--epochs", type=int, default=10, help="")
     parser.add_argument("--learning_rate", type=int, default=5e-5, help="")

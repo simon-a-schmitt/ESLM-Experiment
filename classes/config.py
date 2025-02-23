@@ -3,6 +3,7 @@ import torch
 class Config:
     def __init__(self, args):
         self.model_name = args.model
+        self.mode = args.mode
         self.max_length = args.max_length
         self.epochs = args.epochs
         self.learning_rate = args.learning_rate
