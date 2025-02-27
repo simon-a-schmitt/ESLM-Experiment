@@ -29,6 +29,7 @@ from classes.models import ESLMKGE, ESLM
 from evaluation import evaluation
 
 def main(args):
+
     # Load arguments
     config = Config(args)
     do_train = config.do_train
@@ -71,7 +72,7 @@ def main(args):
     criterion = nn.BCELoss()#BCELoss()  # Assuming a regression task
     utils = Utils()
 
-    # Select Tokenizer
+    # Select Tokenizer based on selected model
     if model_name=="t5":
         tokenizer = T5Tokenizer.from_pretrained(f'{model_base}', model_max_length=config.max_length, legacy=False)
     else:
@@ -86,6 +87,8 @@ def main(args):
 
             
             if config.enrichment:
+
+                # Load pre-trained graph embeddings
                 entity2vec, pred2vec, entity2ix, pred2ix = load_dglke(ds_name)
                 
                 # entitity2vec: Numpy array of entity embeddings
@@ -97,38 +100,50 @@ def main(args):
                 pred_dict = pred2vec
                 pred2ix_size = len(pred2ix)
                 entity2ix_size = len(entity2ix)
+
+            # For each experiment setting (top 5, top 10)
             for topk in config.topk:
 
                 # Initialize the dataset
                 dataset = ESBenchmark(ds_name, 6, topk, False)
 
+                # Get entity-to-class mapping (needed for prompting approach)
                 dict_entity_information = dataset.get_entity_data()
 
                 # Load training and validation data
                 train_data, valid_data = dataset.get_training_dataset()
+
+                # For each fold
                 for fold in range(config.k_fold):
                     train_data_size = len(train_data[fold][0])
                     train_data_samples = train_data[fold][0]
-                    #print("Train Data Samples:")
-                    #print(train_data_samples)
                     print(f"fold: {fold+1}, total entities: {train_data_size}", f"topk: top{topk}")
 
                     # Create model directory
                     models_path = os.path.join(f"{main_model_dir}", f"eslm_checkpoint-{ds_name}-{topk}-{fold}")
 
+                    # Path where models are saved 
+                    # When run on BWUniCluster a dedicated workspace should be created and the workspace path should be set to the workspace (in order to minimize I/O workload)
                     workspace = r"C:\Users\simon\Documents\Uni\UniMaterial\Master\Seminar Knowledge Graphs and LLM\Workspace Test"
+                    # When run locally the workspace can be set to the current working directory
+                    # workspace = os.getcwd()
 
                     models_dir = os.path.join(workspace, models_path)
 
                 
-
+                    # Create model directory if it does not exist
                     if not os.path.exists(models_dir):
                         os.makedirs(models_dir)
+
+                    # Initialize model
                     if config.enrichment:
                         model = ESLMKGE(model_name, model_base, mode)
                     else:
                         model = ESLM(model_name, model_base, mode)
                     param_optimizer = list(model.named_parameters())
+
+
+                    # Set training parameters
 
                     # No weight decay for certain parameters
                     no_decay = ["bias", "LayerNorm.bias", "LayerNorm.weight"]
@@ -159,16 +174,15 @@ def main(args):
                         # e.g. dropout layers are enabled
                         model.train()
                         model.to(config.device)
+
                         #Training part
                         t_start = time.time()
                         train_loss = 0
 
                         
-                        # num is aritifical index
+                        # For each entity in the training data
                         # eid is the entity id for the elements of the dictionary
                         for num, eid in enumerate(train_data_samples):
-
-                            #print("eid:", eid)
 
                             # list of triples (as tuples) (IRI version)
                             triples = dataset.get_triples(eid)
@@ -181,27 +195,32 @@ def main(args):
 
                             # Preprocessing (add [SEP] and build one string per triple)
                             triples_formatted = format_triples(literals)
-                            #print("triples_formatted:", len(triples_formatted))  
 
                             input_ids_list = []
                             attention_masks_list = []
                     
-
+                            # Build context string for prompting approach
                             context_string = f"The entity {dict_entity_information[str(eid)][1]}, a {dict_entity_information[str(eid)][0]}, is being summarized. How relevant is the following triple for this summary?[SEP]"
 
-                            
+                            # For each triple associated with the entity
                             for triple in triples_formatted:
                                 
+                                # Add context string for prompting approach
                                 if prompting:
                                     triple = context_string + triple
+
+                                    # If prompting is used, max sequence length is set to 70 tokens
+                                    max_sequence_length = 70
                                 
-                                # print(triple)
+                                else: 
+                                    # Default sequence length is 40 tokens
+                                    max_sequence_length = 40
+                                
                                 # Tokenizing and adding of [CLS] token
-                                # Max sequence length is set to 40, rest is padded
                                 src_tokenized = tokenizer.encode_plus(
                                     triple, 
                                     max_length=config.max_length,
-                                    padding='max_length',
+                                    padding=max_sequence_length,
                                     truncation=True,
                                     return_attention_mask=True,
                                     return_token_type_ids=True,
@@ -209,41 +228,23 @@ def main(args):
                                     #return_tensors='pt'
                                 )
 
-                                # Token IDs
+                                # Get Token IDs
                                 src_input_ids = src_tokenized['input_ids']
 
-                                # What are real tokens (that the model should attend to)
+                                # What are real tokens (that the model should attend to) -> Exclude padding tokens
                                 src_attention_mask = src_tokenized['attention_mask']
-
-                                #print(src_attention_mask)
 
                                 # Segments within the sequence (irrelevant in this case)
                                 src_segment_ids = src_tokenized['token_type_ids']
 
                                 # Two dimensional arrays with each row representing a triple as token sequence
-                                # print(len(src_input_ids))
                                 input_ids_list.append(src_input_ids)
                                 attention_masks_list.append(src_attention_mask)
-
-                                # for token_id, attention_mask, segment_id in zip(src_input_ids, src_attention_mask, src_segment_ids):
-                                #     decoded_token = tokenizer.decode(token_id)
-                                #     print(f"Token ID: {token_id}, Decoded Token: {decoded_token}, Attention Mask: {attention_mask}")
-
-
-                                # print(context_token_indices)
-                                # print("Context-IDs:", context_length_without_padding)
-
-                                
-                                # # Print tokens and their IDs
-                                # print("Tokens and their IDs:")
-                                # for token_id in src_input_ids:
-                                #     if token_id != tokenizer.pad_token_id:  # Skip padding tokens
-                                #         token = tokenizer.decode([token_id])  # Decoding the token ID to get the actual token
-                                #         print(f"Token: {token}, ID: {token_id}")
 
                                 
 
                             ### apply kge
+                            # Lookup pre-trained KGE for subject, object and predicate
                             if config.enrichment:
                                 p_embs, o_embs, s_embs = [], [], []
                                 for triple in triples:
@@ -277,25 +278,24 @@ def main(args):
                                 o_tensor = torch.tensor(np.array(o_embs),dtype=torch.float).unsqueeze(1)
                                 p_tensor = torch.tensor(np.array(p_embs),dtype=torch.float).unsqueeze(1)
 
+                                # Concatenate the embeddings for the three components to get one KGE per triple
                                 # torch.tensor with (num_triples, 1, 1200)
                                 kg_embeds = torch.cat((s_tensor, p_tensor, o_tensor), 2).to(device)
                                 ### end apply kge
 
-                            ##############################
-                            # Result: (num_triples, seq_len)
-                            input_ids_tensor = torch.tensor(input_ids_list).to(device)
-                            #print("input_ids_tensor:", input_ids_tensor.shape) 
+                            
+                            # torch.tensor with (num_triples, seq_len)
+                            input_ids_tensor = torch.tensor(input_ids_list).to(device) 
                             attention_masks_tensor = torch.tensor(attention_masks_list).to(device)
-                            #print("attention_masks_tensor:", attention_masks_tensor.shape) 
 
-                            # Creates weight values for all triples based on matchin with labels
+
+                            # Get target values for the triples
+                            # Creates weight values for all triples based on matching with gold solutions
                             # Weights are based on the count values from labels (how often does predicate-object-pair occur in gold solutions)
                             # Weights are then normalized
-                            targets = utils.tensor_from_weight(len(triples), triples, labels).to(device)
-                            #print("T:", triples)
-                            #print("L:", labels)
-                            #print("targets:", targets)    
+                            targets = utils.tensor_from_weight(len(triples), triples, labels).to(device) 
 
+                            # Forward pass through the model instance (with or without KGE)
                             if config.enrichment:
 
                                 # Call forward method
@@ -313,9 +313,6 @@ def main(args):
                             # Add extra dimension
                             # Result: (num_triples, 1)
                             reshaped_targets = targets.unsqueeze(-1)
-
-                            #print("Entity: ", eid)
-                            #print(reshaped_logits)
 
                             # Now compute the loss
                             loss = criterion(reshaped_logits, reshaped_targets)
@@ -346,6 +343,10 @@ def main(args):
                         valid_data_size = len(valid_data[fold][0])
                         valid_data_samples = valid_data[fold][0]
 
+
+
+                        # Validation part
+
                         # Set model to evaluation mode
                         # e.g. dropout layers are disabled
                         model.eval()
@@ -371,10 +372,15 @@ def main(args):
                                     if prompting:
                                         triple = context_string + triple
 
+                                        max_sequence_length = 70
+
+                                    else:
+                                        max_sequence_length = 40
+
                                     src_tokenized = tokenizer.encode_plus(
                                         triple, 
                                         max_length=config.max_length,
-                                        padding='max_length',
+                                        padding=max_sequence_length,
                                         truncation=True,
                                         return_attention_mask=True,
                                         add_special_tokens=True
@@ -443,7 +449,7 @@ def main(args):
                                 # Change dimension from (num_triples, 1) to (1, num_triples)
                                 valid_output_tensor = reshaped_logits.view(1, -1).cpu()
 
-                                # get indices of top k predictions
+                                # Get indices of top k predictions
                                 # Result: (1, topk)
                                 (_, output_top) = torch.topk(valid_output_tensor, topk)
 
@@ -461,8 +467,11 @@ def main(args):
 
                             # After entire validation set is done
                             avg_valid_loss = valid_loss/valid_data_size
+
+                            # Not relevant in this case
                             avg_valid_acc = valid_acc/valid_data_size
 
+                            # Console output
                             validation_time = format_time(time.time() - t_start)
                             torch.save({
                                 "epoch": epoch,
@@ -500,12 +509,19 @@ def main(args):
                         model = ESLM(model_name, model_base)
 
                     # Load model
+                    # Create model directory
+                    models_path = os.path.join(f"{main_model_dir}", f"eslm_checkpoint-{ds_name}-{topk}-{fold}")
 
+                    # Path where models are saved 
+                    # When run on BWUniCluster a dedicated workspace should be created and the workspace path should be set to the workspace (in order to minimize I/O workload)
                     workspace = r"C:\Users\simon\Documents\Uni\UniMaterial\Master\Seminar Knowledge Graphs and LLM\Workspace Test"
-                    models_path = os.path.join(workspace, f"{main_model_dir}", f"eslm_checkpoint-{ds_name}-{topk}-{fold}")
-                    print(models_path)
+                    # When run locally the workspace can be set to the current working directory
+                    # workspace = os.getcwd()
+
+                    models_dir = os.path.join(workspace, models_path)
+
                     try:
-                        checkpoint = torch.load(os.path.join(models_path, f"checkpoint_latest_{fold}.pt"))
+                        checkpoint = torch.load(os.path.join(models_dir, f"checkpoint_latest_{fold}.pt"))
                     except:
                         print("Error while loading the model")
                         sys.exit()
@@ -529,10 +545,14 @@ def main(args):
                                 if prompting:
                                     triple = context_string + triple
 
+                                    max_sequence_length = 70
+                                else:
+                                    max_sequence_length = 40
+
                                 src_tokenized = tokenizer.encode_plus(
                                     triple, 
                                     max_length=config.max_length,
-                                    padding='max_length',
+                                    padding=max_sequence_length,
                                     truncation=True,
                                     return_attention_mask=True,
                                     add_special_tokens=True
@@ -599,6 +619,7 @@ def main(args):
                             # get indices in the order of rank
                             _, output_rank = torch.topk(reshaped_logits, len(test_data_samples[eid]))
                             
+                            # Store output predictions
                             directory = f"outputs-{model_name}/{dataset.get_ds_name}"
                             if not os.path.exists(directory):
                                 os.makedirs(directory)
@@ -613,7 +634,11 @@ def main(args):
                             writer(dataset.get_db_path, directory, eid, top_or_rank, topk, rank_list)
         print("Predicting is completed")
         
+
+
         print("Evaluation on progress ...")
+
+        # Load predictions and calculate evaluation metrics
         for ds_name in config.ds_name:
             for topk in config.topk:
                 dataset = ESBenchmark(ds_name, 6, topk, False)

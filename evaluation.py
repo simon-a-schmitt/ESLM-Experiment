@@ -7,6 +7,8 @@ from evaluator.fmeasure import FMeasure
 from evaluator.ndcg import NDCG
 from classes.data import get_all_data, get_rank_triples, get_topk_triples
 
+
+# Method for calculating the evaluation metrics for the given dataset
 def evaluation(dataset, k, model_name):
     ndcg_class = NDCG()
     fmeasure = FMeasure()
@@ -99,7 +101,3 @@ def evaluation(dataset, k, model_name):
             csvwriter.writerow([dataset.ds_name, k, entity_ids[idx], all_fscore[idx]])
 
     print("{}@top{}: F-Measure={}, NDCG={}, MAP={}".format(dataset, k, np.average(all_fscore), np.average(all_ndcg_scores), np.average(all_map_scores)))
-
-
-
-    ## Hast be done one level higher!

@@ -12,6 +12,9 @@ import glob
 import json
 
 UTILS = Utils()
+
+
+# Class for benchmarking dataset (used to read in previously conducted predicitons)
 class ESBenchmark:
     """This class contains modules pertaining to dataset processes"""
     def __init__(self, ds_name, file_n=6, topk=5, weighted_adjacency_matrix=False):
