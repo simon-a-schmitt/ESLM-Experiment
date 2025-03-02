@@ -9,10 +9,11 @@ In addition to the original repository it contains:
 ```
 python main.py --model t5  --enrichment --mode prompting --train --test
 ```
-3. A
-4. 
+3. A folder error analysis. It contains a jupyter notebook called 'Error_Analysis.ipynb' and JSON files with the extracted entities for which ESLM perforemed the worst (see Chapter 5.1 in the report). 
+4. A folder experiment analysis. It contains a jupyter notebook called '.ipynb'. It analyzes the ESLM experiment results for the computational requirements and efficiency (see Chapter 3.4 in the report).
+5. ...
 
-Meine Version: Simon Schmitt
+## ESLM Model
 
 The ESLM model is designed to efficiently perform entity summarization tasks. At its core, ESLM utilizes a language model augmented with an attention mechanism, allowing for context-aware processing and prediction. This mechanism ensures that the model focuses on the most relevant aspects of data sequences. Additionally, ESLM employs a Multi-Layer Perceptron (MLP) for accurate triple scoring, which aids in selecting the most relevant triples for each entity. To augment the model’s effectiveness, we also enriched it with knowledge graph embeddings (KGE), leveraging their rich semantic information.
 
