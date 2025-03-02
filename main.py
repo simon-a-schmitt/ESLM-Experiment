@@ -210,17 +210,17 @@ def main(args):
                                     triple = context_string + triple
 
                                     # If prompting is used, max sequence length is set to 70 tokens
-                                    max_sequence_length = 70
+                                    config.max_length = 70
                                 
                                 else: 
                                     # Default sequence length is 40 tokens
-                                    max_sequence_length = 40
+                                    config.max_length = 40
                                 
                                 # Tokenizing and adding of [CLS] token
                                 src_tokenized = tokenizer.encode_plus(
                                     triple, 
                                     max_length=config.max_length,
-                                    padding=max_sequence_length,
+                                    padding='max_length',
                                     truncation=True,
                                     return_attention_mask=True,
                                     return_token_type_ids=True,
@@ -372,15 +372,15 @@ def main(args):
                                     if prompting:
                                         triple = context_string + triple
 
-                                        max_sequence_length = 70
+                                        config.max_length = 70
 
                                     else:
-                                        max_sequence_length = 40
+                                        config.max_length = 40
 
                                     src_tokenized = tokenizer.encode_plus(
                                         triple, 
                                         max_length=config.max_length,
-                                        padding=max_sequence_length,
+                                        padding='max_length',
                                         truncation=True,
                                         return_attention_mask=True,
                                         add_special_tokens=True
@@ -545,14 +545,14 @@ def main(args):
                                 if prompting:
                                     triple = context_string + triple
 
-                                    max_sequence_length = 70
+                                    config.max_length = 70
                                 else:
-                                    max_sequence_length = 40
+                                    config.max_length = 40
 
                                 src_tokenized = tokenizer.encode_plus(
                                     triple, 
                                     max_length=config.max_length,
-                                    padding=max_sequence_length,
+                                    padding='max_length',
                                     truncation=True,
                                     return_attention_mask=True,
                                     add_special_tokens=True
