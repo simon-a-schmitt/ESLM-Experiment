@@ -1,0 +1,502 @@
+{
+    "1": [
+        "Agent",
+        "3WAY FM"
+    ],
+    "5": [
+        "Agent",
+        "Dallas Keuchel"
+    ],
+    "8": [
+        "Agent",
+        "Fired Wife"
+    ],
+    "10": [
+        "Agent",
+        "Roderick Carr"
+    ],
+    "143": [
+        "Agent",
+        "Lucy Ward (Musician)"
+    ],
+    "43": [
+        "Work",
+        "King Of The Mountain (Film)"
+    ],
+    "46": [
+        "Work",
+        "Sketchy Ep 2"
+    ],
+    "95": [
+        "Work",
+        "It'S Still Rock And Roll To Me"
+    ],
+    "161": [
+        "Work",
+        "Can U Get Wit It"
+    ],
+    "164": [
+        "Work",
+        "The Honolulu Advertiser"
+    ],
+    "15": [
+        "Event",
+        "2012–13 Uefa Champions League"
+    ],
+    "19": [
+        "Event",
+        "Massacre On 34Th Street"
+    ],
+    "65": [
+        "Event",
+        "2010 Belgian Super Cup"
+    ],
+    "148": [
+        "Event",
+        "Battle Of Zacatecas (1914)"
+    ],
+    "150": [
+        "Event",
+        "Raid On Griessie"
+    ],
+    "36": [
+        "Species",
+        "Lygodium Microphyllum"
+    ],
+    "37": [
+        "Species",
+        "Ovophis"
+    ],
+    "38": [
+        "Species",
+        "Rubus Arizonensis"
+    ],
+    "90": [
+        "Species",
+        "Trichoscypha Cavalliensis"
+    ],
+    "158": [
+        "Species",
+        "Lineatriton Orchimelas"
+    ],
+    "21": [
+        "Location",
+        "Akalwadi"
+    ],
+    "25": [
+        "Location",
+        "Reamer Barn"
+    ],
+    "72": [
+        "Location",
+        "Jalalia, Khyber Pakhtunkhwa"
+    ],
+    "73": [
+        "Location",
+        "Kings Ripton"
+    ],
+    "155": [
+        "Location",
+        "Tchonoro"
+    ],
+    "2": [
+        "Agent",
+        "Adrian Griffin"
+    ],
+    "51": [
+        "Agent",
+        "Ashot I Of Iberia"
+    ],
+    "52": [
+        "Agent",
+        "Cindy Mackey"
+    ],
+    "58": [
+        "Agent",
+        "Storme Warren"
+    ],
+    "142": [
+        "Agent",
+        "Juhan Muks"
+    ],
+    "41": [
+        "Work",
+        "Foppt Den Dämon!"
+    ],
+    "47": [
+        "Work",
+        "Sky (Faye Wong Album)"
+    ],
+    "49": [
+        "Work",
+        "The Crowd Snores"
+    ],
+    "92": [
+        "Work",
+        "Drama City"
+    ],
+    "163": [
+        "Work",
+        "Silence Is Easy (Song)"
+    ],
+    "16": [
+        "Event",
+        "Battle Of Bregalnica"
+    ],
+    "18": [
+        "Event",
+        "Burgery Ambush"
+    ],
+    "70": [
+        "Event",
+        "Operation Hump"
+    ],
+    "147": [
+        "Event",
+        "Battle Of Sampur"
+    ],
+    "149": [
+        "Event",
+        "Convoy Hx 156"
+    ],
+    "31": [
+        "Species",
+        "African Grey Hornbill"
+    ],
+    "34": [
+        "Species",
+        "Enallagma Truncatum"
+    ],
+    "39": [
+        "Species",
+        "Siamese Mud Carp"
+    ],
+    "83": [
+        "Species",
+        "Bryotropha Plantariella"
+    ],
+    "157": [
+        "Species",
+        "Gonyosoma Hodgsoni"
+    ],
+    "22": [
+        "Location",
+        "Chitita"
+    ],
+    "27": [
+        "Location",
+        "Uelsby"
+    ],
+    "29": [
+        "Location",
+        "Wernshausen"
+    ],
+    "75": [
+        "Location",
+        "Muławki"
+    ],
+    "153": [
+        "Location",
+        "Henlow Camp Railway Station"
+    ],
+    "3": [
+        "Agent",
+        "Andrew Kippis"
+    ],
+    "6": [
+        "Agent",
+        "E. K. Mawlong"
+    ],
+    "7": [
+        "Agent",
+        "Finn Schiander"
+    ],
+    "59": [
+        "Agent",
+        "Svyatoslav_Tanasov"
+    ],
+    "141": [
+        "Agent",
+        "A. Scott Sloan"
+    ],
+    "45": [
+        "Work",
+        "Simon (2004 Film)"
+    ],
+    "48": [
+        "Work",
+        "Sting Me"
+    ],
+    "96": [
+        "Work",
+        "Politiken"
+    ],
+    "97": [
+        "Work",
+        "Rebel Love Song"
+    ],
+    "165": [
+        "Work",
+        "You Better Run"
+    ],
+    "13": [
+        "Event",
+        "2012 League Of Ireland Cup Final"
+    ],
+    "14": [
+        "Event",
+        "2011 Sparta Prague Open"
+    ],
+    "61": [
+        "Event",
+        "1960 Glover Trophy"
+    ],
+    "67": [
+        "Event",
+        "Battle Of Calicut (1502)"
+    ],
+    "68": [
+        "Event",
+        "Battle Of Cepeda (1820)"
+    ],
+    "33": [
+        "Species",
+        "Eastern Sumatran Rhinoceros"
+    ],
+    "35": [
+        "Species",
+        "Lepiota Helveola"
+    ],
+    "81": [
+        "Species",
+        "Amphisbaena Ridleyi"
+    ],
+    "85": [
+        "Species",
+        "Inverted Repeat-Lacking Clade"
+    ],
+    "159": [
+        "Species",
+        "Nemapogon Nigralbella"
+    ],
+    "26": [
+        "Location",
+        "Richmond–Petersburg Turnpike"
+    ],
+    "74": [
+        "Location",
+        "Kotumachagi"
+    ],
+    "78": [
+        "Location",
+        "Sauxillanges"
+    ],
+    "80": [
+        "Location",
+        "Zarudcze"
+    ],
+    "151": [
+        "Location",
+        "Ayrovo"
+    ],
+    "9": [
+        "Agent",
+        "Ludwigsburg University"
+    ],
+    "53": [
+        "Agent",
+        "Edmund Smith Conklin"
+    ],
+    "55": [
+        "Agent",
+        "Hiroshi Mori (Writer)"
+    ],
+    "56": [
+        "Agent",
+        "Momchil Tsvetanov"
+    ],
+    "57": [
+        "Agent",
+        "Najmadin Shukr Rauf"
+    ],
+    "44": [
+        "Work",
+        "Our Leading Citizen (1939 Film)"
+    ],
+    "50": [
+        "Work",
+        "Touch Of Death (1961 Film)"
+    ],
+    "94": [
+        "Work",
+        "Intensive Care Medicine (Journal)"
+    ],
+    "98": [
+        "Work",
+        "Terrorist Threats"
+    ],
+    "100": [
+        "Work",
+        "Wide_Awake_Drunk"
+    ],
+    "20": [
+        "Event",
+        "Triathlon At The 2000 Summer Olympics – Men'S"
+    ],
+    "62": [
+        "Event",
+        "1967 Italian Grand Prix"
+    ],
+    "63": [
+        "Event",
+        "2008 Copa América – Fifa Futsal"
+    ],
+    "69": [
+        "Event",
+        "Battle On The Elster"
+    ],
+    "146": [
+        "Event",
+        "2013 Gulf Cup Of Nations"
+    ],
+    "32": [
+        "Species",
+        "Bornean Mountain Ground Squirrel"
+    ],
+    "82": [
+        "Species",
+        "Balanites"
+    ],
+    "87": [
+        "Species",
+        "Pseudanos Trimaculatus"
+    ],
+    "88": [
+        "Species",
+        "Stemonoporus Laevifolius"
+    ],
+    "89": [
+        "Species",
+        "Thaia Saprophytica"
+    ],
+    "30": [
+        "Location",
+        "Yayoidai Station"
+    ],
+    "76": [
+        "Location",
+        "Pinnacle Mountain (South Carolina)"
+    ],
+    "77": [
+        "Location",
+        "Saint-Raphaël, Var"
+    ],
+    "79": [
+        "Location",
+        "Stara Bučka"
+    ],
+    "152": [
+        "Location",
+        "Fleckistock"
+    ],
+    "4": [
+        "Agent",
+        "Anthony Beaumont-Dark"
+    ],
+    "54": [
+        "Agent",
+        "Fabrice Gautrat"
+    ],
+    "60": [
+        "Agent",
+        "William Anthony Hughes"
+    ],
+    "144": [
+        "Agent",
+        "Pe Maung Tin"
+    ],
+    "145": [
+        "Agent",
+        "Roque Ceruti"
+    ],
+    "42": [
+        "Work",
+        "Hey Boy (Teddybears Song)"
+    ],
+    "91": [
+        "Work",
+        "392 (Album)"
+    ],
+    "93": [
+        "Work",
+        "If (Glasvegas Song)"
+    ],
+    "99": [
+        "Work",
+        "Time (Dave Clark Album)"
+    ],
+    "162": [
+        "Work",
+        "Kaalpurush"
+    ],
+    "11": [
+        "Event",
+        "2009–10 Swiss Cup"
+    ],
+    "12": [
+        "Event",
+        "2011 Kor Royal Cup"
+    ],
+    "17": [
+        "Event",
+        "Battle Of Rottofreddo"
+    ],
+    "64": [
+        "Event",
+        "2008 Copa Del Rey Final"
+    ],
+    "66": [
+        "Event",
+        "2013 Slovak Cup Final"
+    ],
+    "40": [
+        "Species",
+        "Trachelipus Dimorphus"
+    ],
+    "84": [
+        "Species",
+        "Hilarographa Excellens"
+    ],
+    "86": [
+        "Species",
+        "Melaleuca Sheathiana"
+    ],
+    "156": [
+        "Species",
+        "Gerbil Mouse"
+    ],
+    "160": [
+        "Species",
+        "Schistura Jarutanini"
+    ],
+    "23": [
+        "Location",
+        "Kuleh Bayan"
+    ],
+    "24": [
+        "Location",
+        "Phong Thạnh Tây"
+    ],
+    "28": [
+        "Location",
+        "Wehlaberg"
+    ],
+    "71": [
+        "Location",
+        "Darreh Dang"
+    ],
+    "154": [
+        "Location",
+        "Mike Fratello"
+    ]
+}
