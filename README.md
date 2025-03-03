@@ -1,6 +1,19 @@
 # ESLM: Improving entity summarization by leveraging language models
 
-Meine Version: Simon Schmitt
+## Notes
+
+The repository was forked from [the original ESLM repository](https://github.com/dice-group/ESLM).
+In addition to the original repository it contains:
+1. The final version of my seminar report in the folder `final report`.
+2. An additional parameter called --mode that allows to apply the different experiments that I covered in my report. Possible values are 'standard' (default ESLM), 'modified-information-fusion' (see Chapter 5.2 in the report), 'second-level-encoder' (see Chapter 5.3 in the report) and 'prompting' (see Chapter 5.4 in the report). For example, if you want to try out the ESLM model with T5 as encoder and KGE and prompting you have to use the following statement:
+```
+python main.py --model t5  --enrichment --mode prompting --train --test
+```
+3. A folder `analysis/error analysis`. It contains a jupyter notebook called 'Error_Analysis.ipynb' and JSON files with the extracted entities for which ESLM performed the worst (see Chapter 5.1 in the report). 
+4. A folder `analysis/experiment analysis`. It contains a jupyter notebook called '.ipynb'. It analyzes the ESLM experiment results for the computational requirements and efficiency (see Chapter 3.4 in the report).
+5. A folder `datasets_entity_information`. It contains JSON files with the mapping of entities to their respecitve classes. This is needed for running the prompting approach.
+
+## ESLM Model
 
 The ESLM model is designed to efficiently perform entity summarization tasks. At its core, ESLM utilizes a language model augmented with an attention mechanism, allowing for context-aware processing and prediction. This mechanism ensures that the model focuses on the most relevant aspects of data sequences. Additionally, ESLM employs a Multi-Layer Perceptron (MLP) for accurate triple scoring, which aids in selecting the most relevant triples for each entity. To augment the model’s effectiveness, we also enriched it with knowledge graph embeddings (KGE), leveraging their rich semantic information.
 
