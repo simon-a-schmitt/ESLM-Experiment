@@ -124,9 +124,9 @@ def main(args):
 
                     # Path where models are saved 
                     # When run on BWUniCluster a dedicated workspace should be created and the workspace path should be set to the workspace (in order to minimize I/O workload)
-                    workspace = r"C:\Users\simon\Documents\Uni\UniMaterial\Master\Seminar Knowledge Graphs and LLM\Workspace Test"
+                    # workspace = r"[workspace_path]"
                     # When run locally the workspace can be set to the current working directory
-                    # workspace = os.getcwd()
+                    workspace = os.getcwd()
 
                     models_dir = os.path.join(workspace, models_path)
 
@@ -514,9 +514,9 @@ def main(args):
 
                     # Path where models are saved 
                     # When run on BWUniCluster a dedicated workspace should be created and the workspace path should be set to the workspace (in order to minimize I/O workload)
-                    workspace = r"C:\Users\simon\Documents\Uni\UniMaterial\Master\Seminar Knowledge Graphs and LLM\Workspace Test"
+                    # workspace = r"[workspace_path]"
                     # When run locally the workspace can be set to the current working directory
-                    # workspace = os.getcwd()
+                    workspace = os.getcwd()
 
                     models_dir = os.path.join(workspace, models_path)
 
