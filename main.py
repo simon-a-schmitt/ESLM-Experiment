@@ -122,6 +122,7 @@ def main(args):
                     # Create model directory
                     models_path = os.path.join(f"{main_model_dir}", f"eslm_checkpoint-{ds_name}-{topk}-{fold}")
 
+                    # UPDATE
                     # Path where models are saved 
                     # When run on BWUniCluster a dedicated workspace should be created and the workspace path should be set to the workspace (in order to minimize I/O workload)
                     # workspace = r"[workspace_path]"
@@ -326,7 +327,7 @@ def main(args):
                             # Gradient clipping (optional)
                             #torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
 
-                            # Update parameters
+                            # Updating parameters
                             optimizer.step()
 
                             # Upate learning rate
@@ -512,6 +513,7 @@ def main(args):
                     # Create model directory
                     models_path = os.path.join(f"{main_model_dir}", f"eslm_checkpoint-{ds_name}-{topk}-{fold}")
 
+                    # UPDATE
                     # Path where models are saved 
                     # When run on BWUniCluster a dedicated workspace should be created and the workspace path should be set to the workspace (in order to minimize I/O workload)
                     # workspace = r"[workspace_path]"
