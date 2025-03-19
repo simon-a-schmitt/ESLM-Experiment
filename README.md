@@ -13,6 +13,8 @@ python main.py --model t5  --enrichment --mode prompting --train --test
 4. A folder `analysis/experiment analysis`. It contains a jupyter notebook called '.ipynb'. It analyzes the ESLM experiment results for the computational requirements and efficiency (see Chapter 3.4 in the report).
 5. A folder `datasets_entity_information`. It contains JSON files with the mapping of entities to their respecitve classes. This is needed for running the prompting approach.
 
+If running the experiments on BwUniCluster, a dedicated [workspace](https://wiki.bwhpc.de/e/Workspace) should be created for storing the trained models (in order to reduce I/O workload on the cluster itself). In this case the workspace variable will have to be updated to the workspace path. The corresponding parts in the code can be found by searching for "UPDATE" in file `main.py`. If the experiments are run locally you do not have to change anything. 
+
 ## ESLM Model
 
 The ESLM model is designed to efficiently perform entity summarization tasks. At its core, ESLM utilizes a language model augmented with an attention mechanism, allowing for context-aware processing and prediction. This mechanism ensures that the model focuses on the most relevant aspects of data sequences. Additionally, ESLM employs a Multi-Layer Perceptron (MLP) for accurate triple scoring, which aids in selecting the most relevant triples for each entity. To augment the model’s effectiveness, we also enriched it with knowledge graph embeddings (KGE), leveraging their rich semantic information.
